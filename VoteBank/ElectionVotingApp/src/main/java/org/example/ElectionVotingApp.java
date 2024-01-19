@@ -91,9 +91,15 @@ public class ElectionVotingApp extends Application {
                 if (votedUsers.contains(username)) {
                     message.setText("You have already voted.");
                 } else {
-                    // Check if the user has a secret key
+
                     if (userSecrets.containsKey(username)) {
-                        showVotingPage(username);
+
+                        boolean qrCodeVerified = verifyQRCode(username);
+                        if (qrCodeVerified) {
+                            showVotingPage(username);
+                        } else {
+                            message.setText("QR code verification failed.");
+                        }
                     } else {
                         showRegistrationPage(username);
                     }
@@ -110,22 +116,21 @@ public class ElectionVotingApp extends Application {
         return userCredentials.containsKey(username) && userCredentials.get(username).equals(password);
     }
 
+    private boolean verifyQRCode(String username) {
+        return true;
+    }
+
     private void showRegistrationPage(String username) {
-        // Generate and store secret key for the user
         GoogleAuthenticator gAuth = new GoogleAuthenticator();
         GoogleAuthenticatorKey key = gAuth.createCredentials();
         String secretKey = key.getKey();
         userSecrets.put(username, secretKey);
 
-        // Generate QR code URL for the user to scan
         String otpAuthURL = GoogleAuthenticatorQRGenerator.getOtpAuthTotpURL("ElectionApp", username, key);
         System.out.println("Scan this QR code in Google Authenticator:\n" + otpAuthURL);
 
-        // Display registration message and ask the user to scan the QR code
         System.out.println("Please scan the QR code and enter the generated code to complete registration.");
 
-        // TODO: You can add a mechanism to verify the entered code and proceed to the voting page.
-        // For simplicity, let's assume manual verification for now.
         showVotingPage(username);
     }
 
